@@ -5,6 +5,7 @@ import 'package:aplikasi_shoppinglist/providers/groceriesdata_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   const AddItemScreen({super.key});
@@ -15,6 +16,7 @@ class AddItemScreen extends ConsumerStatefulWidget {
 
 class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
+  final uuid = const Uuid();
   final _itemNameController = TextEditingController();
   final _quantityController = TextEditingController();
   Category selectedCategoryController = categories[Categories.vegetables]!;
@@ -34,7 +36,7 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
         .read(groceriesProvider.notifier)
         .addItem(
           Grocery(
-            id: DateTime.now().toString(),
+            id: uuid.v4(),
             name: _itemNameController.text,
             quantity: int.tryParse(_quantityController.text)!,
             category: selectedCategoryController,
