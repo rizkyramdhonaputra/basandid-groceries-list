@@ -3,26 +3,41 @@ import '../models/category_model.dart';
 import 'package:flutter/material.dart';
 
 class GroceryItemTile extends StatelessWidget {
-  const GroceryItemTile({super.key, required this.item, required this.category});
+  const GroceryItemTile({
+    super.key,
+    required this.item,
+    required this.category,
+    required this.onDismissed,
+  });
 
   final Grocery item;
   final Category category;
+  final void Function(Grocery item) onDismissed;
 
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
+  Widget build(final BuildContext context) {
+    return Dismissible(
+      key: Key(item.id),
+      onDismissed: (final direction) => onDismissed(item),
       child: Row(
         children: [
-          Container(
-            color: category.color,
-            width: 40,
-            height: 40,
-            margin: const EdgeInsets.only(right: 10),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(color: category.color, width: 20, height: 20),
           ),
-          const SizedBox(width: 10),
-          Text(item.name),
+          Text(
+            item.name,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
           const Spacer(),
-          Text(item.quantity.toString()),
+          Text(
+            item.quantity.toString(),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
           const SizedBox(width: 10),
         ],
       ),

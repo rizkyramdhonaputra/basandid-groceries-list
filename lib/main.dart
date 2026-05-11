@@ -1,4 +1,4 @@
-import 'package:aplikasi_shoppinglist/screens/grocerieslist_screen.dart';
+import 'package:aplikasi_shoppinglist/routes/screen_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,7 +14,7 @@ final theme = ThemeData.dark().copyWith(
 );
 
 void main() {
-  runApp(ProviderScope(child: const ShoppingList()));
+  runApp(const ProviderScope(child: ShoppingList()));
 }
 
 class ShoppingList extends StatelessWidget {
@@ -22,11 +22,12 @@ class ShoppingList extends StatelessWidget {
 
   // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return MaterialApp(
       title: 'Flutter Groceries',
       theme: theme,
-      home: const GrocerieslistScreen(),
+      initialRoute: AppRoutes.groceriesList,
+      routes: AppRoutes.getRoutes(),
     );
   }
 }

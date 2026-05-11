@@ -8,12 +8,12 @@ class GroceriesNotifier extends Notifier<List<Grocery>> {
     return groceryItems;
   }
 
-  void addItem(Grocery item) {
+  void addItem(final Grocery item) {
     state = [...state, item];
   }
 
-  void removeItem(String id) {
-    state = state.where((item) => item.id != id).toList();
+  void removeItem(final String id) {
+    state = state.where((final item) => item.id != id).toList();
   }
 }
 
