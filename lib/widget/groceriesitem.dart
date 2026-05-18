@@ -18,7 +18,17 @@ class GroceryItemTile extends StatelessWidget {
   Widget build(final BuildContext context) {
     return Dismissible(
       key: Key(item.id),
-      onDismissed: (final direction) => onDismissed(item),
+      onDismissed: (final direction) {
+        final snackbarMessenger = ScaffoldMessenger.of(context);
+        onDismissed(item);
+        snackbarMessenger.clearSnackBars();
+        snackbarMessenger.showSnackBar(
+          SnackBar(
+            content: Text('${item.name} removed from the shopping list!'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
       child: Row(
         children: [
           Padding(

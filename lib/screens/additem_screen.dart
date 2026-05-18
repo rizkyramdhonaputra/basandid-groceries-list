@@ -5,7 +5,6 @@ import 'package:aplikasi_shoppinglist/providers/groceriesdata_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 class AddItemScreen extends ConsumerStatefulWidget {
   const AddItemScreen({super.key});
@@ -16,33 +15,42 @@ class AddItemScreen extends ConsumerStatefulWidget {
 
 class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
-  final uuid = const Uuid();
-  final _itemNameController = TextEditingController();
-  final _quantityController = TextEditingController();
-  Category selectedCategoryController = categories[Categories.vegetables]!;
-
-  @override
-  void dispose() {
-    _itemNameController.dispose();
-    _quantityController.dispose();
-    super.dispose();
-  }
+  String _enteredItemName = '';
+  int _enteredItemQuantity = 0;
+  Category _selectedCategory = categories[ItemCategories.vegetables]!;
 
   void _submitForm() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    _formKey.currentState!.save();
     ref
         .read(groceriesProvider.notifier)
         .addItem(
-          Grocery(
-            id: uuid.v4(),
-            name: _itemNameController.text,
-            quantity: int.tryParse(_quantityController.text)!,
-            category: selectedCategoryController,
+          GroceryInput(
+            name: _enteredItemName,
+            quantity: _enteredItemQuantity,
+            category: _selectedCategory,
           ),
         );
+    final snackbarProcess = ScaffoldMessenger.of(context);
     Navigator.pop(context);
+    snackbarProcess.clearSnackBars();
+    snackbarProcess.showSnackBar(
+      const SnackBar(
+        content: Text('Item added to the shopping list!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _resetForm() {
+    _formKey.currentState!.reset();
+    setState(() {
+      _enteredItemName = '';
+      _enteredItemQuantity = 0;
+      _selectedCategory = categories[ItemCategories.vegetables]!;
+    });
   }
 
   @override
@@ -62,42 +70,102 @@ class _AddItemScreenState extends ConsumerState<AddItemScreen> {
   Widget _buildForm(final BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _itemNameController,
-            decoration: const InputDecoration(labelText: 'Item Name'),
-            maxLength: 50,
-            validator: (final value) => value == null || value.isEmpty
-                ? 'Please enter an item name'
-                : null,
-          ),
-          TextFormField(
-            controller: _quantityController,
-            decoration: const InputDecoration(labelText: 'Quantity'),
-            keyboardType: TextInputType.number,
-            maxLength: 10,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            validator: (final value) => value == null || value.isEmpty
-                ? 'Please enter a quantity'
-                : null,
-          ),
-          DropdownButtonFormField<Categories>(
-            initialValue: Categories.vegetables,
-            items: [
-              for (Categories category in Categories.values)
-                DropdownMenuItem(value: category, child: Text(category.name)),
-            ],
-            onChanged: (final value) {
-              value != null
-                  ? setState(() {
-                      selectedCategoryController = categories[value]!;
-                    })
-                  : null;
-            },
-          ),
-          ElevatedButton(onPressed: _submitForm, child: const Text('Add Item')),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Item Name'),
+              onSaved: (enteredValue) => _enteredItemName = enteredValue!,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              maxLength: 50,
+              validator: (final value) =>
+                  value == null || value.isEmpty || value.length <= 2
+                  ? 'Please enter an item name (at least 3 characters)'
+                  : null,
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    decoration: const InputDecoration(labelText: 'Quantity'),
+                    onSaved: (enteredValue) =>
+                        _enteredItemQuantity = int.parse(enteredValue!),
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (final value) =>
+                        value == null ||
+                            value.isEmpty ||
+                            int.tryParse(value) == null ||
+                            int.parse(value) < 1
+                        ? 'Please enter a quantity'
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: DropdownButtonFormField<Category>(
+                    initialValue: categories[ItemCategories.vegetables],
+                    decoration: const InputDecoration(labelText: 'Category'),
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    items: [
+                      for (final inputCategory in categories.entries)
+                        DropdownMenuItem(
+                          value: inputCategory.value,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                color: inputCategory.value.color,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                inputCategory.value.title,
+                                style: Theme.of(context).textTheme.bodyMedium!
+                                    .copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSecondaryContainer,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                    onChanged: (final value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: _resetForm, child: const Text('Reset')),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  child: const Text('Add Item'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

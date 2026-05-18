@@ -7,7 +7,7 @@ class Category {
   final Color color;
 }
 
-enum Categories {
+enum ItemCategories {
   vegetables,
   fruit,
   meat,
@@ -17,5 +17,5 @@ enum Categories {
   spices,
   convenience,
   hygiene,
-  other
+  other,
 }
